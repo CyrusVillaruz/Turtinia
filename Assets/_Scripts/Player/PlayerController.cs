@@ -10,6 +10,8 @@ namespace Turtinia.Player
         [SerializeField] private float _movementSpeed = 5.0f;
         [SerializeField] private float _jumpHeight = 2.0f;
         [SerializeField] private float _gravity = -9.8f;
+        [SerializeField] private Transform _cameraTransform;
+        [SerializeField] private bool _shouldFaceMoveDirection = false;
         
         private CharacterController _characterController;
         private Vector2 _moveInput;
@@ -35,8 +37,23 @@ namespace Turtinia.Player
 
         private void Update()
         {
-            Vector3 movement = new Vector3(_moveInput.x,  0, _moveInput.y);
-            _characterController.Move(movement * (_movementSpeed * Time.deltaTime));
+            Vector3 forward = _cameraTransform.forward;
+            Vector3 right = _cameraTransform.right;
+
+            forward.y = 0;
+            right.y = 0;
+            
+            forward.Normalize();
+            right.Normalize();
+            
+            Vector3 moveDirection = forward * _moveInput.y + right * _moveInput.x;
+            _characterController.Move(moveDirection * (_movementSpeed * Time.deltaTime));
+
+            if (_shouldFaceMoveDirection && moveDirection.sqrMagnitude > 0.001f)
+            {
+                Quaternion toRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
+                transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, 10f * Time.deltaTime);
+            }
             
             _velocity.y += _gravity * Time.deltaTime;
             _characterController.Move(_velocity * Time.deltaTime);
