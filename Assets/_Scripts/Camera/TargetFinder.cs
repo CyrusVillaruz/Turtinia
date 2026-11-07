@@ -1,33 +1,57 @@
-using System.Collections;
 using System.Collections.Generic;
+using Turtinia.Combat;
 using Unity.Cinemachine;
 using UnityEngine;
 
 namespace Turtinia.Camera
 {
+    public enum LockMode
+    {
+        FreeLook,
+        SoftLock,
+        HardLock
+    }
+
     public class TargetFinder : MonoBehaviour
     {
-        private static List<Transform> _targetPool;
-        private static readonly int _lockedOn = Animator.StringToHash("lockedOn");
+        private static readonly List<Transform> _targetPool = new();
 
+        [Header("Camera Settings")]
         [SerializeField] private CinemachineCamera _playerCamera;
         [SerializeField] private CinemachineCamera _targetCamera;
-        [SerializeField] private Animator _targetAnimator;
-        [SerializeField] private float _cameraLookSpeedThreshold = 2.0f;
+        [SerializeField] private CombatState _combatState;
+        [SerializeField] private float _cameraLookSpeedThreshold = 5.0f;
+
+        [Header("Manual Target Switching")]
+        [Tooltip("Restricts valid targets to the specified angle.")]
+        [SerializeField, Range(10f, 89f)] private float _selectionConeAngle = 60f;
+        [SerializeField] private float _selectCooldown = 0.5f;
+
+        [Header("Soft lock")]
+        [SerializeField] private float _softLockRetargetInterval = 0.25f;
+        [Tooltip("Indicates how close a new enemy must be than the current one before the soft lock switches to prevent flip-flop between two enemies at similar distances.")]
+        [SerializeField] private float _softLockSwitchMargin = 1.5f;
 
         public List<Transform> TargetPoolView;
-        private Transform _currentTarget;
 
         public Transform CurrentTarget => _currentTarget;
+        public LockMode Mode => _mode;
 
-        private bool _isLockedOn;
-        private bool _isOnCooldown;
+        private Transform _currentTarget;
+        private LockMode _mode = LockMode.FreeLook;
+        private float _nextSelectTime;
+        private float _nextSoftLockCheck;
 
         private PlayerActions _playerActions;
+        private UnityEngine.Camera _camera;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => _targetPool.Clear();
 
         private void Awake()
         {
             _playerActions = new PlayerActions();
+            TargetPoolView = _targetPool;
         }
 
         private void OnEnable()
@@ -42,139 +66,210 @@ namespace Turtinia.Camera
 
         private void Start()
         {
-            _targetPool ??= new List<Transform>();
-
+            _camera = UnityEngine.Camera.main;
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
 
-            // Make sure we always start in the free-look state, regardless of
-            // which camera happens to be enabled in the scene.
-            LockOff();
+            ClearLock();
         }
 
         private void Update()
         {
-            TargetPoolView = _targetPool;
+            bool hasCombatState = _combatState;
+            bool inCombat = hasCombatState && _combatState.IsInCombat;
 
-            if (_isLockedOn && !_currentTarget)
+            if (_mode != LockMode.FreeLook && (!_currentTarget || !_currentTarget.gameObject.activeInHierarchy))
             {
-                LockOff();
+                ClearLock();
+            }
+
+            if (hasCombatState && !inCombat && _mode != LockMode.FreeLook)
+            {
+                ClearLock();
             }
 
             if (_playerActions.Camera.TargetLock.WasPressedThisFrame())
             {
-                if (_isLockedOn) LockOff();
-                else LockOn();
+                if (_mode == LockMode.HardLock)
+                {
+                    ClearLock();
+                }
+                else if (inCombat || !hasCombatState)
+                {
+                    HardLock();
+                }
             }
 
-            if (_isLockedOn)
-            {
-                float lookX = _playerActions.Gameplay.Look.ReadValue<Vector2>().x;
+            if (_mode == LockMode.HardLock) HandleTargetSwitching();
+            else if (inCombat) UpdateSoftLock();
+        }
 
-                if (lookX > _cameraLookSpeedThreshold)
-                {
-                    SelectTarget(1);   // target to the right on screen
-                }
-                else if (lookX <= -_cameraLookSpeedThreshold)
-                {
-                    SelectTarget(-1);  // target to the left on screen
-                }
+
+        private void HardLock()
+        {
+            Transform target = _mode == LockMode.SoftLock ? _currentTarget : NearestToScreenCenter();
+
+            if (target)
+            {
+                ApplyTarget(target, LockMode.HardLock);
             }
         }
 
-        private void LockOn()
+        private void ApplyTarget(Transform target, LockMode mode)
         {
-            _currentTarget = NearestTarget();
-
-            if (!_currentTarget) return;
-
-            _targetCamera.LookAt = _currentTarget;
+            _currentTarget = target;
+            _mode = mode;
+            _targetCamera.LookAt = target;
             _targetCamera.gameObject.SetActive(true);
             _playerCamera.gameObject.SetActive(false);
-            _isLockedOn = true;
-            if (_targetAnimator) _targetAnimator.SetBool(_lockedOn, true);
         }
 
-        private void LockOff()
+        private void ClearLock()
         {
             _currentTarget = null;
+            _mode = LockMode.FreeLook;
             _targetCamera.LookAt = null;
             _targetCamera.gameObject.SetActive(false);
             _playerCamera.gameObject.SetActive(true);
-            _isLockedOn = false;
-            if (_targetAnimator) _targetAnimator.SetBool(_lockedOn, false);
         }
 
-        // direction: 1 = next target to the right on screen, -1 = to the left.
-        // Screen-space order is computed at selection time, so it's always
-        // relative to where the camera is *right now*.
+        private void UpdateSoftLock()
+        {
+            if (_mode == LockMode.SoftLock && Time.time < _nextSoftLockCheck) return;
+            
+            _nextSoftLockCheck = Time.time + _softLockRetargetInterval;
+
+            Transform nearest = NearestEnemyToPlayer(out float nearestDistance);
+
+            if (!nearest)
+            {
+                if (_mode == LockMode.SoftLock)
+                {
+                    ClearLock();
+                }
+                return;
+            }
+
+            if (_mode == LockMode.SoftLock)
+            {
+                if (nearest == _currentTarget) return;
+
+                float currentDistance = Vector3.Distance(transform.position, _currentTarget.position);
+                if (nearestDistance > currentDistance - _softLockSwitchMargin) return;
+            }
+
+            ApplyTarget(nearest, LockMode.SoftLock);
+        }
+
+        private Transform NearestEnemyToPlayer(out float distance)
+        {
+            Vector3 origin = transform.position;
+            Transform nearest = null;
+            float bestSqr = float.MaxValue;
+
+            foreach (Target target in Target.AllTargets)
+            {
+                if (!target.IsEnemy) continue;
+
+                float sqr = (target.transform.position - origin).sqrMagnitude;
+                if (sqr >= bestSqr) continue;
+
+                nearest = target.transform;
+                bestSqr = sqr;
+            }
+
+            distance = nearest ? Mathf.Sqrt(bestSqr) : 0f;
+            return nearest;
+        }
+
+        private void HandleTargetSwitching()
+        {
+            float lookX = _playerActions.Gameplay.Look.ReadValue<Vector2>().x;
+
+
+            if (lookX > _cameraLookSpeedThreshold)
+            {
+                // Camera moved right. Select target right of current locked target.
+                SelectTarget(1);
+            }
+            else if (lookX <= -_cameraLookSpeedThreshold)
+            {
+                // Camera moved left. Select target left of current locked target.
+                SelectTarget(-1);
+            }
+        }
+        
         private void SelectTarget(int direction)
         {
-            if (_isOnCooldown || !_currentTarget || _targetPool is not { Count: > 1 }) return;
+            if (Time.time < _nextSelectTime || !_currentTarget || _targetPool.Count < 2) return;
 
-            UnityEngine.Camera cam = UnityEngine.Camera.main;
-            if (!cam) return;
+            if (!_camera) return;
 
-            float currentX = cam.WorldToViewportPoint(_currentTarget.position).x;
+            Vector2 origin = ScreenPosition(_camera, _currentTarget, out _);
+            float minCos = Mathf.Cos(_selectionConeAngle * Mathf.Deg2Rad);
 
             Transform best = null;
-            float bestDelta = float.MaxValue;
+            float bestDistance = float.MaxValue;
 
             foreach (Transform candidate in _targetPool)
             {
                 if (candidate == _currentTarget) continue;
 
-                // Positive when the candidate is in the requested direction.
-                float delta = (cam.WorldToViewportPoint(candidate.position).x - currentX) * direction;
+                Vector2 offset = ScreenPosition(_camera, candidate, out bool inFront) - origin;
+                float distance = offset.magnitude;
 
-                if (delta <= 0f || delta >= bestDelta) continue;
+                if (!inFront || distance < 0.0001f) continue;
 
-                best = candidate;
-                bestDelta = delta;
+                if (offset.x * direction / distance < minCos) continue;
+
+                if (distance < bestDistance)
+                {
+                    best = candidate;
+                    bestDistance = distance;
+                }
             }
 
             if (!best) return;
 
             _currentTarget = best;
-            _targetCamera.LookAt = _currentTarget;
-            _isOnCooldown = true;
-            StartCoroutine(ResetCoolDown());
+            _targetCamera.LookAt = best;
+            _nextSelectTime = Time.time + _selectCooldown;
         }
 
-        private IEnumerator ResetCoolDown()
+        private Transform NearestToScreenCenter()
         {
-            yield return new WaitForSeconds(0.5f);
-            _isOnCooldown = false;
-        }
+            if (!_camera) return null;
 
-        // Go through pool and return the target nearest the center of the screen.
-        private Transform NearestTarget()
-        {
-            UnityEngine.Camera cam = UnityEngine.Camera.main;
-            if (!cam || _targetPool == null || _targetPool.Count == 0) return null;
-
-            Vector2 center = new Vector2(0.5f, 0.5f);
+            Vector2 center = new Vector2(0.5f * _camera.aspect, 0.5f);
             Transform nearest = null;
-            float shortestDistance = float.MaxValue;
+            float shortest = float.MaxValue;
 
             foreach (Transform t in _targetPool)
             {
-                Vector3 viewport = cam.WorldToViewportPoint(t.position);
-                float distance = Vector2.Distance(new Vector2(viewport.x, viewport.y), center);
+                Vector2 position = ScreenPosition(_camera, t, out bool inFront);
+                if (!inFront) continue;
 
-                if (distance < shortestDistance)
+                float distance = Vector2.Distance(position, center);
+                if (distance < shortest)
                 {
-                    shortestDistance = distance;
+                    shortest = distance;
                     nearest = t;
                 }
             }
 
             return nearest;
         }
+        
+        private static Vector2 ScreenPosition(UnityEngine.Camera cam, Transform t, out bool inFront)
+        {
+            Vector3 viewport = cam.WorldToViewportPoint(t.position);
+            inFront = viewport.z > 0f;
+            return new Vector2(viewport.x * cam.aspect, viewport.y);
+        }
 
         public static void AddToPool(Transform target)
         {
-            if (_targetPool != null && !_targetPool.Contains(target))
+            if (!_targetPool.Contains(target))
             {
                 _targetPool.Add(target);
             }
@@ -182,7 +277,7 @@ namespace Turtinia.Camera
 
         public static void RemoveFromPool(Transform target)
         {
-            _targetPool?.Remove(target);
+            _targetPool.Remove(target);
         }
     }
 }
