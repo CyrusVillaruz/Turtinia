@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,18 +5,18 @@ namespace Turtinia.Player
 {
     public class PlayerController : MonoBehaviour
     {
-        [Header("Player Settings")]
-        [SerializeField] private float _movementSpeed = 5.0f;
-        [SerializeField] private float _jumpHeight = 2.0f;
-        [SerializeField] private float _gravity = -9.8f;
         [SerializeField] private Transform _cameraTransform;
+        [SerializeField] private float _movementSpeed = 5.0f;
+        [SerializeField] private float _jumpHeight = 1.0f;
+        [SerializeField] private float _gravity = -9.81f;
         [SerializeField] private bool _shouldFaceMoveDirection = false;
+        [SerializeField] private float _rotationSpeed = 10.0f;
         
         private CharacterController _characterController;
-        private Vector2 _moveInput;
-        private Vector3 _velocity;
+        private Vector3 _moveInput;
+        private Vector3 _moveVelocity;
 
-        private void Awake()
+        private void Start()
         {
             _characterController = GetComponent<CharacterController>();
         }
@@ -29,10 +28,7 @@ namespace Turtinia.Player
 
         public void OnJump(InputAction.CallbackContext context)
         {
-            if (context.performed && _characterController.isGrounded)
-            {
-                _velocity.y = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
-            }
+            _moveVelocity.y = Mathf.Sqrt(_jumpHeight * -2 * _gravity);
         }
 
         private void Update()
@@ -52,11 +48,11 @@ namespace Turtinia.Player
             if (_shouldFaceMoveDirection && moveDirection.sqrMagnitude > 0.001f)
             {
                 Quaternion toRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-                transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, 10f * Time.deltaTime);
+                transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, _rotationSpeed * Time.deltaTime);
             }
             
-            _velocity.y += _gravity * Time.deltaTime;
-            _characterController.Move(_velocity * Time.deltaTime);
+            _moveVelocity.y += _gravity * Time.deltaTime;
+            _characterController.Move(_moveVelocity * Time.deltaTime);
         }
     }
 }
