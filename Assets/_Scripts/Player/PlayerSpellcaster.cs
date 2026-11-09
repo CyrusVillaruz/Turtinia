@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Turtinia.Combat;
+using Turtinia.Spells;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -5,13 +8,83 @@ namespace Turtinia.Player
 {
     public class PlayerSpellcaster : MonoBehaviour
     {
+        [SerializeField] private SpellDefinition _basicSpell;
+
+        [Header("Aiming")]
+        [SerializeField] private LayerMask _aimMask = ~0;
+        [SerializeField] private float _maxAimDistance = 100f;
+        [SerializeField] private Vector3 _muzzleOffset = new Vector3(0.7f, 0.5f, 0.4f);
+
+        private readonly Dictionary<SpellDefinition, float> _readyAt = new();
+        private ResourceHub _hub;
+        private UnityEngine.Camera _camera;
+        private bool _attackHeld;
+
+        private void Awake()
+        {
+            _hub = GetComponent<ResourceHub>();
+            _camera = UnityEngine.Camera.main;
+        }
+
+        private void OnDisable() => _attackHeld = false;
+
         public void OnAttack(InputAction.CallbackContext context)
         {
-            if (context.performed)
+            if (context.started)
             {
-                // TODO: Cast projectile (e.g. instantiate ball). Should be able to press repeatedly or hold down LMB
-                UnityEngine.Debug.Log("Cast Basic Spell");
+                _attackHeld = true;
+                TryCast(_basicSpell);
             }
+            else if (context.canceled)
+            {
+                _attackHeld = false;
+            }
+        }
+
+        private void Update()
+        {
+            if (_attackHeld)
+            {
+                TryCast(_basicSpell);
+            }
+        }
+
+        public bool TryCast(SpellDefinition spell)
+        {
+            if (!spell) return false;
+            if (_readyAt.TryGetValue(spell, out float readyAt) && Time.time < readyAt) return false;
+            if (!_hub.TryConsume(spell.Costs)) return false;
+
+            _readyAt[spell] = Time.time + spell.Cooldown;
+            spell.Cast(BuildContext());
+            return true;
+        }
+
+        private SpellCastContext BuildContext()
+        {
+            Transform cam = _camera.transform;
+            Ray ray = _camera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+
+            // Start the aim ray level with the player so geometry behind them can't swallow the shot.
+            Vector3 rayStart = ray.GetPoint(Vector3.Distance(cam.position, transform.position));
+            Vector3 aimPoint = Physics.Raycast(rayStart, ray.direction, out RaycastHit hit,
+                    _maxAimDistance, _aimMask, QueryTriggerInteraction.Ignore)
+                ? hit.point
+                : rayStart + ray.direction * _maxAimDistance;
+
+            Vector3 flatForward = Vector3.ProjectOnPlane(cam.forward, Vector3.up).normalized;
+            Vector3 origin = transform.position
+                           + cam.right * _muzzleOffset.x
+                           + Vector3.up * _muzzleOffset.y
+                           + flatForward * _muzzleOffset.z;
+
+            Vector3 direction = aimPoint - origin;
+            if (direction.sqrMagnitude < 0.25f)
+            {
+                direction = ray.direction;
+            }
+
+            return new SpellCastContext(origin, direction.normalized, transform);
         }
     }
 }
