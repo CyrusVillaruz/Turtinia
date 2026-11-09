@@ -204,7 +204,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68312828d200852419ac85319c6bcf3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Target
-  _sightRange: 20
+  _sightRange: 10
 --- !u!114 &5845747022761118607
 MonoBehaviour:
   m_ObjectHideFlags: 0
