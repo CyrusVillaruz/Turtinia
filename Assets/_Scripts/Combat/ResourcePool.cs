@@ -21,12 +21,12 @@ namespace Turtinia.Combat
         public float Max => _baseMax + _maxBonus;
 
         protected virtual void Awake() => _current = Max;
-        protected virtual void Start() => Raise();
+        protected virtual void Start() => RaiseEvent();
 
         private void Update()
         {
             if (_regenPerSecond <= 0f || _current >= Max || Time.time < _regenResumesAt) return;
-            Change(_regenPerSecond * Time.deltaTime);
+            UpdateResource(_regenPerSecond * Time.deltaTime);
         }
 
         public bool CanAfford(float amount) => _current >= amount;
@@ -34,27 +34,27 @@ namespace Turtinia.Combat
         public bool TryConsume(float amount)
         {
             if (!CanAfford(amount)) return false;
-            Change(-amount);
+            UpdateResource(-amount);
             _regenResumesAt = Time.time + _regenDelay;
             return true;
         }
 
-        public void Restore(float amount) => Change(amount);
+        public void Restore(float amount) => UpdateResource(amount);
 
         // TODO: Call this method for the relic that increases max mana.
         public void SetMaxBonus(float bonus)
         {
             _maxBonus = bonus;
-            Change(0f);
+            UpdateResource(0f);
         }
 
-        protected void Change(float delta)
+        protected void UpdateResource(float delta)
         {
             _current = Mathf.Clamp(_current + delta, 0f, Max);
-            Raise();
+            RaiseEvent();
         }
 
-        private void Raise()
+        private void RaiseEvent()
         {
             if (_changed)
             {

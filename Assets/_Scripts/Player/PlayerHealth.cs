@@ -17,7 +17,7 @@ namespace Turtinia.Player
             if (Current <= 0f || Time.time < _invulnerableUntil) return false;
             _invulnerableUntil = Time.time + _iFrameDuration;
 
-            Change(-damage);
+            UpdateResource(-damage);
             _invulnerabilityStarted.Invoke(_iFrameDuration);
 
             if (Current <= 0f)
