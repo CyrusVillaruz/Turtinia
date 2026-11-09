@@ -7,11 +7,12 @@ namespace Turtinia.Player
     {
         [Header("Camera")]
         [SerializeField] private Transform _cameraTransform;
-        [SerializeField] private bool _shouldFaceMoveDirection;
         [SerializeField] private float _rotationSpeed = 10.0f;
         
         [Header("Movement")]
         [SerializeField] private float _movementSpeed = 5.0f;
+        public bool IsMovementLocked { get; set; }
+        public Vector3 MoveDirection { get; private set; }
         
         [Header("Jump")]
         [SerializeField] private float _gravity = -9.81f;
@@ -73,8 +74,9 @@ namespace Turtinia.Player
             right.Normalize();
 
             Vector3 moveDirection = forward * _moveInput.y + right * _moveInput.x;
-
-            if (_shouldFaceMoveDirection && moveDirection.sqrMagnitude > 0.001f)
+            MoveDirection = moveDirection;
+            
+            if (!IsMovementLocked && moveDirection.sqrMagnitude > 0.001f)
             {
                 Quaternion toRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
                 transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, _rotationSpeed * dt);
@@ -82,7 +84,7 @@ namespace Turtinia.Player
 
             UpdateVerticalVelocity(dt);
 
-            Vector3 velocity = moveDirection * _movementSpeed;
+            Vector3 velocity = IsMovementLocked ? Vector3.zero : moveDirection * _movementSpeed;
             velocity.y = _verticalVelocity;
             _characterController.Move(velocity * dt);
 

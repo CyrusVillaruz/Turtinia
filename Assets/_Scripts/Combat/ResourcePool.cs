@@ -10,7 +10,7 @@ namespace Turtinia.Combat
         [SerializeField] private float _baseMax = 10f;
         [SerializeField] private float _regenPerSecond;
         [SerializeField] private float _regenDelay = 1f;
-        [SerializeField] private ResourceChangeEventChannel _changed;
+        [SerializeField] private ResourceChangeEventChannel _onResourceChangedEventChannel;
 
         private float _current;
         private float _maxBonus;
@@ -56,9 +56,9 @@ namespace Turtinia.Combat
 
         private void RaiseEvent()
         {
-            if (_changed)
+            if (_onResourceChangedEventChannel)
             {
-                _changed.Invoke(new ResourceChange { Current = _current, Max = Max });
+                _onResourceChangedEventChannel.Invoke(new ResourceChange { Current = _current, Max = Max });
             }
         }
     }
