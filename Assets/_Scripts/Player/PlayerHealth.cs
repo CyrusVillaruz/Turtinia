@@ -1,3 +1,4 @@
+using System;
 using Turtinia.Combat;
 using Turtinia.Events;
 using UnityEngine;
@@ -11,10 +12,23 @@ namespace Turtinia.Player
         [SerializeField] private float _iFrameDuration = 3.0f;
         
         private float _invulnerableUntil;
+        public event Action OnHitAvoided;
+
+        public bool IsInvulnerable => Time.time < _invulnerableUntil;
+
+        public void GrantInvulnerability(float seconds)
+        {
+            _invulnerableUntil = Mathf.Max(_invulnerableUntil, Time.time + seconds);
+        }
         
         public bool TakeDamage(float damage)
         {
-            if (Current <= 0f || Time.time < _invulnerableUntil) return false;
+            if (Current <= 0f) return false;
+            if (IsInvulnerable)
+            {
+                OnHitAvoided?.Invoke();
+                return false;
+            }
             _invulnerableUntil = Time.time + _iFrameDuration;
 
             UpdateResource(-damage);

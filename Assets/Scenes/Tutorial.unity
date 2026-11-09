@@ -817,7 +817,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &553628493
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -945,7 +945,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &635461994
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2384,7 +2384,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!136 &1451311364
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2784,6 +2784,9 @@ GameObject:
   - component: {fileID: 1752125581}
   - component: {fileID: 1752125580}
   - component: {fileID: 1752125583}
+  - component: {fileID: 1752125586}
+  - component: {fileID: 1752125585}
+  - component: {fileID: 1752125584}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -2973,11 +2976,35 @@ MonoBehaviour:
     m_ActionId: 20df25d3-5f8c-4e3d-a388-c47d75371c23
     m_ActionName: 'Gameplay/Look[/Mouse/delta,/Pen/delta]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1752125586}
+        m_TargetAssemblyTypeName: Turtinia.Player.PlayerSprint, Assembly-CSharp
+        m_MethodName: OnToggleSprint
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: aed80e68-278e-47bb-b4c0-4df4993b69bd
     m_ActionName: 'Gameplay/ToggleSprint[/Keyboard/leftCtrl]'
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1752125584}
+        m_TargetAssemblyTypeName: Turtinia.Player.PlayerSpellcaster, Assembly-CSharp
+        m_MethodName: OnAttack
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 803f7093-7d51-44b0-b608-b4c0adac4172
     m_ActionName: 'Gameplay/Attack[/Mouse/leftButton]'
   - m_PersistentCalls:
@@ -3168,6 +3195,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Turtinia.Debug.InvulVisual
   _renderer: {fileID: 1752125568}
   _invulnerableMaterial: {fileID: 2100000, guid: fba57ea286a2afb449ad55e1e529f058, type: 2}
+  _perfectDodgeMaterial: {fileID: 2100000, guid: 45ecab6fe40377544a0d5de238e391f9, type: 2}
+  _perfectDodgeDuration: 0.5
 --- !u!114 &1752125580
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3230,8 +3259,51 @@ MonoBehaviour:
   - Type: {fileID: 11400000, guid: ceb49955e2f69c849983a3ff4b15563e, type: 2}
     Amount: 20
   _distance: 5
-  _duration: 0.25
+  _iFrameDuration: 0.15
   _cooldown: 1
+--- !u!114 &1752125584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1752125566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70213adf391c4d9698b9a061bf154213, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turtinia.Player.PlayerSpellcaster
+--- !u!114 &1752125585
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1752125566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7955bd464ea4c4c84509d616e1b848c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turtinia.Player.PerfectDodge
+  _window: 0.15
+  _refundFraction: 1
+  _onPerfectDodge: {fileID: 0}
+--- !u!114 &1752125586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1752125566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73afad4ae45c4eebaa372253e3686741, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turtinia.Player.PlayerSprint
+  _staminaType: {fileID: 11400000, guid: ceb49955e2f69c849983a3ff4b15563e, type: 2}
+  _speedMultiplier: 1.4
+  _staminaPerSecond: 10
+  _minStaminaToStart: 10
 --- !u!1 &1760488518
 GameObject:
   m_ObjectHideFlags: 0

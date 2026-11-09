@@ -13,6 +13,7 @@ namespace Turtinia.Player
         [SerializeField] private float _movementSpeed = 5.0f;
         public bool IsMovementLocked { get; set; }
         public Vector3 MoveDirection { get; private set; }
+        public float SpeedMultiplier { get; set; } = 1f;
         
         [Header("Jump")]
         [SerializeField] private float _gravity = -9.81f;
@@ -84,7 +85,7 @@ namespace Turtinia.Player
 
             UpdateVerticalVelocity(dt);
 
-            Vector3 velocity = IsMovementLocked ? Vector3.zero : moveDirection * _movementSpeed;
+            Vector3 velocity = IsMovementLocked ? Vector3.zero : moveDirection * (_movementSpeed * SpeedMultiplier);
             velocity.y = _verticalVelocity;
             _characterController.Move(velocity * dt);
 
