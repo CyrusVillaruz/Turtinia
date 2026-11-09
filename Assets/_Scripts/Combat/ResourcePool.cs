@@ -1,3 +1,4 @@
+using System;
 using Turtinia.Events;
 using Turtinia.Interfaces;
 using UnityEngine;
@@ -10,8 +11,11 @@ namespace Turtinia.Combat
         [SerializeField] private float _baseMax = 10f;
         [SerializeField] private float _regenPerSecond;
         [SerializeField] private float _regenDelay = 1f;
+        [Tooltip("Leave empty for enemies unless they should share the same resource.")]
         [SerializeField] private ResourceChangeEventChannel _onResourceChangedEventChannel;
 
+        public event Action<ResourceChange> ValueChanged;
+        
         private float _current;
         private float _maxBonus;
         private float _regenResumesAt;
@@ -56,10 +60,13 @@ namespace Turtinia.Combat
 
         private void RaiseEvent()
         {
+            ResourceChange change = new ResourceChange { Current = _current, Max = Max };
+            
             if (_onResourceChangedEventChannel)
             {
-                _onResourceChangedEventChannel.Invoke(new ResourceChange { Current = _current, Max = Max });
+                _onResourceChangedEventChannel.Invoke(change);
             }
+            ValueChanged?.Invoke(change);
         }
     }
 }
