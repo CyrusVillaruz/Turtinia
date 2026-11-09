@@ -126,11 +126,32 @@ namespace Turtinia.Camera
 
         private void ClearLock()
         {
+            if (_mode != LockMode.FreeLook) SyncFreeLookToCurrentView();
+            
             _currentTarget = null;
             _mode = LockMode.FreeLook;
             _targetCamera.LookAt = null;
             _targetCamera.gameObject.SetActive(false);
             _playerCamera.gameObject.SetActive(true);
+        }
+        
+        private void SyncFreeLookToCurrentView()
+        {
+            if (!_camera) return;
+
+            Vector3 euler = _camera.transform.eulerAngles;
+            float yaw = Mathf.DeltaAngle(0f, euler.y);
+            float pitch = Mathf.DeltaAngle(0f, euler.x);
+
+            if (_playerCamera.TryGetComponent(out CinemachinePanTilt panTilt))
+            {
+                panTilt.PanAxis.Value = yaw;
+                panTilt.TiltAxis.Value = pitch;
+            }
+            else if (_playerCamera.TryGetComponent(out CinemachineOrbitalFollow orbital))
+            {
+                orbital.HorizontalAxis.Value = yaw;
+            }
         }
 
         private void UpdateSoftLock()

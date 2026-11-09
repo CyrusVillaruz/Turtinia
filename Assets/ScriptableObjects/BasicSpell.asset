@@ -16,5 +16,5 @@ MonoBehaviour:
   _cooldown: 0.5
   _projectilePrefab: {fileID: 8570319488180704448, guid: 0715cf910034e034682b2faaa56ecdfe, type: 3}
   _damage: 5
-  _speed: 20
+  _speed: 50
   _lifetime: 3
