@@ -42,8 +42,14 @@ namespace Turtinia.Camera
 
             if (isVisible == _isInPool) return;
 
-            if (isVisible) TargetFinder.AddToPool(transform);
-            else TargetFinder.RemoveFromPool(transform);
+            if (isVisible)
+            {
+                TargetFinder.AddToPool(transform);
+            }
+            else
+            {
+                TargetFinder.RemoveFromPool(transform);
+            }
 
             _isInPool = isVisible;
         }

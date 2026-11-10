@@ -4,5 +4,5 @@ using UnityEngine;
 namespace Turtinia.Events
 {
     [CreateAssetMenu(menuName = "Events/ResourceChangeEventChannel")]
-    public class ResourceChangeEventChannel : EventChannel<ResourceChange> {}
+    public class ResourceChangeEventChannel : EventChannel<Resource> {}
 }

@@ -19,6 +19,7 @@ namespace Turtinia.Player
         private ResourceHub _hub;
         private bool _refunded;
         
+        // Local version of event for InvulVisual to update material on perfect dodge.
         public event Action OnPerfectDodge;
 
         private void Awake()

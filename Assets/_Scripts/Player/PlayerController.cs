@@ -123,7 +123,10 @@ namespace Turtinia.Player
             if (_isJumping && !_jumpHeld)
             {
                 float shortJumpVelocity = Mathf.Sqrt(_shortJumpHeight * -2f * _gravity);
-                if (_verticalVelocity > shortJumpVelocity) _verticalVelocity = shortJumpVelocity;
+                if (_verticalVelocity > shortJumpVelocity)
+                {
+                    _verticalVelocity = shortJumpVelocity;
+                }
             }
 
             float gravityScale = _verticalVelocity < 0f ? _fallGravityMultiplier : 1f;

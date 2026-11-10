@@ -10,7 +10,7 @@ namespace Turtinia.UI
         [SerializeField] private float _unitsPerCrystal = 15f;
         private List<ManaCrystal> _crystals = new List<ManaCrystal>();
 
-        public void OnManaChanged(ResourceChange change)
+        public void OnManaChanged(Resource change)
         {
             int crystalsNeeded = Mathf.CeilToInt(change.Max / _unitsPerCrystal);
             if (_crystals.Count != crystalsNeeded)

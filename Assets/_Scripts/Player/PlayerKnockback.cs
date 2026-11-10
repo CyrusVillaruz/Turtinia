@@ -21,7 +21,10 @@ namespace Turtinia.Player
             direction.y = 0f;
             if (direction.sqrMagnitude < 0.0001f) return;
 
-            if (_routine != null) StopCoroutine(_routine);
+            if (_routine != null)
+            {
+                StopCoroutine(_routine);
+            }
             _routine = StartCoroutine(KnockbackRoutine(direction.normalized * distance));
         }
 

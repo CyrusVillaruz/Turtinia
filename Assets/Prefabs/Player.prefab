@@ -103,6 +103,7 @@ GameObject:
   - component: {fileID: 5356376356338005376}
   - component: {fileID: 6612801801408871225}
   - component: {fileID: 2334011163751648432}
+  - component: {fileID: 6427232003022602593}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -367,6 +368,22 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: b813810f-5cb9-4e97-9dfb-77eca17218c9
     m_ActionName: 'UI/ProgressDialogue[/Keyboard/f]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 6427232003022602593}
+        m_TargetAssemblyTypeName: Turtinia.Player.PlayerInteractor, Assembly-CSharp
+        m_MethodName: OnInteract
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 7888f227-9d68-4048-9a31-ed58145cbed7
+    m_ActionName: 'UI/Interact[/Keyboard/e]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Gameplay
@@ -619,12 +636,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70213adf391c4d9698b9a061bf154213, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Turtinia.Player.PlayerSpellcaster
-  _basicSpell: {fileID: 0}
+  _basicSpell: {fileID: 11400000, guid: d141800d91f4cfc408776208e70e07c0, type: 2}
   _aimMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 631
   _maxAimDistance: 100
   _muzzleOffset: {x: 0.7, y: 0.5, z: 0.4}
+  _aimAtSoftLockTarget: 1
+--- !u!114 &6427232003022602593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2891729679491175055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 364577413a3a4ed8bb8a16e3135853b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Turtinia.Player.PlayerInteractor
 --- !u!1 &3625725889641450524
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,7 +10,7 @@ namespace Turtinia.Combat
         [SerializeField] private float _checkInterval = 0.1f;
 
         public bool IsInCombat { get; private set; }
-        public event Action<bool> CombatChanged;
+        public event Action<bool> OnCombatStateChanged;
 
         private float _lastSeenTime;
         private float _nextCheckTime;
@@ -55,7 +55,7 @@ namespace Turtinia.Combat
             if (IsInCombat == value) return;
 
             IsInCombat = value;
-            CombatChanged?.Invoke(value);
+            OnCombatStateChanged?.Invoke(value);
         }
     }
 }

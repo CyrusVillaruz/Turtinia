@@ -12,15 +12,15 @@ namespace Turtinia.Player
         [SerializeField] private SpellDefinition _basicSpell;
 
         [Header("Aiming")]
-        [SerializeField] private LayerMask _aimMask = ~0;
+        [SerializeField] private LayerMask _aimMask;
         [SerializeField] private float _maxAimDistance = 100f;
         [SerializeField] private Vector3 _muzzleOffset = new Vector3(0.7f, 0.5f, 0.4f);
 
-        [Tooltip("Also aim at the auto-selected target while in soft lock. Turn off to keep free crosshair aiming until a hard lock.")]
+        [Tooltip("Aim at auto-selected target while in soft lock. Turn off to keep free crosshair aiming until a hard lock.")]
         [SerializeField] private bool _aimAtSoftLockTarget = true;
 
         private TargetFinder _targetFinder;
-        private readonly Dictionary<SpellDefinition, float> _readyAt = new();
+        private readonly Dictionary<SpellDefinition, float> _spellReadyAt = new();
         private ResourceHub _hub;
         private UnityEngine.Camera _camera;
         private bool _attackHeld;
@@ -55,18 +55,17 @@ namespace Turtinia.Player
             }
         }
 
-        public bool TryCast(SpellDefinition spell)
+        private void TryCast(SpellDefinition spell)
         {
-            if (!spell) return false;
-            if (_readyAt.TryGetValue(spell, out float readyAt) && Time.time < readyAt) return false;
-            if (!_hub.TryConsume(spell.Costs)) return false;
+            if (!spell) return;
+            if (_spellReadyAt.TryGetValue(spell, out float readyAt) && Time.time < readyAt) return;
+            if (!_hub.TryConsume(spell.Costs)) return;
 
-            _readyAt[spell] = Time.time + spell.Cooldown;
-            spell.Cast(BuildContext());
-            return true;
+            _spellReadyAt[spell] = Time.time + spell.Cooldown;
+            spell.Cast(BuildSpellContext());
         }
 
-        private SpellCastContext BuildContext()
+        private SpellCastContext BuildSpellContext()
         {
             Transform cam = _camera.transform;
             Vector3 flatForward = Vector3.ProjectOnPlane(cam.forward, Vector3.up).normalized;
@@ -93,8 +92,7 @@ namespace Turtinia.Player
             target = _targetFinder ? _targetFinder.CurrentTarget : null;
             if (!target) return false;
 
-            return _targetFinder.Mode == LockMode.HardLock
-                   || (_aimAtSoftLockTarget && _targetFinder.Mode == LockMode.SoftLock);
+            return _targetFinder.Mode == LockMode.HardLock || (_aimAtSoftLockTarget && _targetFinder.Mode == LockMode.SoftLock);
         }
 
         private static Vector3 AimPointOf(Transform target)

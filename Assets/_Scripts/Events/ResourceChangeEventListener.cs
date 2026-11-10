@@ -3,5 +3,5 @@ using UnityEngine;
 
 namespace Turtinia.Events
 {
-    public class ResourceChangeEventListener : EventListener<ResourceChange> {}
+    public class ResourceChangeEventListener : EventListener<Resource> {}
 }

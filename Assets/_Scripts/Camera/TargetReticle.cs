@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace Turtinia.Camera
 {
-    [DefaultExecutionOrder(300)]
     public class TargetReticle : MonoBehaviour
     {
         [SerializeField] private TargetFinder _targetFinder;
@@ -42,7 +41,10 @@ namespace Turtinia.Camera
 
         private static void SetVisible(RectTransform element, bool visible)
         {
-            if (element.gameObject.activeSelf != visible) element.gameObject.SetActive(visible);
+            if (element.gameObject.activeSelf != visible)
+            {
+                element.gameObject.SetActive(visible);
+            }
         }
     }
 }

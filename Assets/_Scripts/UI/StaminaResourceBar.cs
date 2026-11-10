@@ -22,7 +22,7 @@ namespace Turtinia.UI
             _group.alpha = 0f;
         }
 
-        public void OnResourceChanged(ResourceChange change)
+        public void OnResourceChanged(Resource change)
         {
             _fill.fillAmount = change.Max > 0f ? change.Current / change.Max : 0f;
 

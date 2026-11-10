@@ -11,7 +11,7 @@ namespace Turtinia.UI
         [SerializeField] private GameObject _heartPrefab;
         private List<HealthHeart> _hearts = new List<HealthHeart>();
 
-        public void OnHealthChanged(ResourceChange change)
+        public void OnHealthChanged(Resource change)
         {
             int heartsNeeded = Mathf.CeilToInt(change.Max / 2f);
             if (_hearts.Count != heartsNeeded)

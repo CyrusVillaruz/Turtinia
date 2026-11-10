@@ -14,7 +14,7 @@ namespace Turtinia.Combat
         [Tooltip("Leave empty for enemies unless they should share the same resource.")]
         [SerializeField] private ResourceChangeEventChannel _onResourceChangedEventChannel;
 
-        public event Action<ResourceChange> ValueChanged;
+        public event Action<Resource> ValueChanged;
         
         private float _current;
         private float _maxBonus;
@@ -45,7 +45,7 @@ namespace Turtinia.Combat
 
         public void Restore(float amount) => UpdateResource(amount);
 
-        // TODO: Call this method for the relic that increases max mana.
+        // TODO: Call this method for relics that increases maximum amount of a resource (mana, stamina, health).
         public void SetMaxBonus(float bonus)
         {
             _maxBonus = bonus;
@@ -60,13 +60,13 @@ namespace Turtinia.Combat
 
         private void RaiseEvent()
         {
-            ResourceChange change = new ResourceChange { Current = _current, Max = Max };
+            Resource resource = new Resource { Current = _current, Max = Max };
             
             if (_onResourceChangedEventChannel)
             {
-                _onResourceChangedEventChannel.Invoke(change);
+                _onResourceChangedEventChannel.Invoke(resource);
             }
-            ValueChanged?.Invoke(change);
+            ValueChanged?.Invoke(resource);
         }
     }
 }

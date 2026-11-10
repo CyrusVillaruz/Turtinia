@@ -29,7 +29,7 @@ namespace Turtinia.Camera
 
         [Header("Soft lock")]
         [SerializeField] private float _softLockRetargetInterval = 0.25f;
-        [Tooltip("Indicates how close a new enemy must be than the current one before the soft lock switches to prevent flip-flop between two enemies at similar distances.")]
+        [Tooltip("Indicates how close a new enemy must be than current one before soft lock switches to prevent switching between two enemies at similar distances.")]
         [SerializeField] private float _softLockSwitchMargin = 1.5f;
 
         public List<Transform> TargetPoolView;
@@ -100,8 +100,14 @@ namespace Turtinia.Camera
                 }
             }
 
-            if (_mode == LockMode.HardLock) HandleTargetSwitching();
-            else if (inCombat) UpdateSoftLock();
+            if (_mode == LockMode.HardLock)
+            {
+                HandleTargetSwitching();
+            }
+            else if (inCombat)
+            {
+                UpdateSoftLock();
+            }
         }
 
 
@@ -126,7 +132,10 @@ namespace Turtinia.Camera
 
         private void ClearLock()
         {
-            if (_mode != LockMode.FreeLook) SyncFreeLookToCurrentView();
+            if (_mode != LockMode.FreeLook)
+            {
+                SyncFreeLookToCurrentView();
+            }
             
             _currentTarget = null;
             _mode = LockMode.FreeLook;

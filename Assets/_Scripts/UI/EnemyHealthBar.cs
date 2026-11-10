@@ -23,7 +23,7 @@ namespace Turtinia.UI
         private void OnEnable()
         {
             _pool.ValueChanged += OnChanged;
-            OnChanged(new ResourceChange { Current = _pool.Current, Max = _pool.Max });
+            OnChanged(new Resource { Current = _pool.Current, Max = _pool.Max });
         }
 
         private void OnDisable()
@@ -31,7 +31,7 @@ namespace Turtinia.UI
             _pool.ValueChanged -= OnChanged;
         }
 
-        private void OnChanged(ResourceChange change)
+        private void OnChanged(Resource change)
         {
             _fill.fillAmount = change.Max > 0f ? change.Current / change.Max : 0f;
         }
