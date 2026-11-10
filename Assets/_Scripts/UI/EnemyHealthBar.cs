@@ -22,13 +22,13 @@ namespace Turtinia.UI
 
         private void OnEnable()
         {
-            _pool.ValueChanged += OnChanged;
+            _pool.OnValueChanged += OnChanged;
             OnChanged(new Resource { Current = _pool.Current, Max = _pool.Max });
         }
 
         private void OnDisable()
         {
-            _pool.ValueChanged -= OnChanged;
+            _pool.OnValueChanged -= OnChanged;
         }
 
         private void OnChanged(Resource change)

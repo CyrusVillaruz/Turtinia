@@ -14,7 +14,8 @@ namespace Turtinia.Combat
         [Tooltip("Leave empty for enemies unless they should share the same resource.")]
         [SerializeField] private ResourceChangeEventChannel _onResourceChangedEventChannel;
 
-        public event Action<Resource> ValueChanged;
+        // Local version, used for individual enemies.
+        public event Action<Resource> OnValueChanged;
         
         private float _current;
         private float _maxBonus;
@@ -66,7 +67,7 @@ namespace Turtinia.Combat
             {
                 _onResourceChangedEventChannel.Invoke(resource);
             }
-            ValueChanged?.Invoke(resource);
+            OnValueChanged?.Invoke(resource);
         }
     }
 }
