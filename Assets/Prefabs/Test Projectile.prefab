@@ -155,7 +155,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f3ce52d20754850826d040b977235fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Turtinia.Debug.TestProjectile
-  _speed: 1
+  _speed: 5
   _damage: 1
   _knockbackDistance: 1
-  _lifetime: 99999
+  _lifetime: 30
