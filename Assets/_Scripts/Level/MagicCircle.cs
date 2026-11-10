@@ -46,6 +46,7 @@ namespace Turtinia.Level
         {
             if (_loading) return;
 
+            // TODO: Load scene asynchronously to later add a Loading screen and fade-in/out effects.
             string scene = TargetScene;
             _loading = true;
             SceneManager.LoadScene(scene);
